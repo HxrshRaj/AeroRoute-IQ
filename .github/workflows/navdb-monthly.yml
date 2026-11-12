@@ -1,0 +1,36 @@
+name: Monthly navigation database
+
+on:
+  schedule:
+    - cron: "17 5 2 * *"   # 05:17 UTC on the 2nd of every month
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pytest
+      - name: Tests
+        run: python -m pytest tests/navdb -q
+      - name: Fetch public source data
+        run: PYTHONPATH=src python -m navdb fetch --dest data/navdb/source
+      - name: Build
+        run: PYTHONPATH=src python -m navdb build --source data/navdb/source --out data/navdb/out --countries IN
+      - name: Summary
+        if: always()
+        run: |
+          echo '### Navigation database build' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat data/navdb/out/*.manifest.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: navdb-${{ github.run_id }}
+          path: |
+            data/navdb/out/
+            data/navdb/source/*.csv
+          retention-days: 90

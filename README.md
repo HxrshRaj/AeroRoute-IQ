@@ -259,3 +259,20 @@ This project is licensed under the MIT License.
 ---
 
 Built for modern airline operations, scheduling optimization, revenue intelligence, and decision-support analytics.
+
+---
+
+# 🗄️ Navigation Database Build Tool
+
+`src/navdb` is a scripted, tested monthly build of an airport, runway and navaid database from open data (OurAirports): rule-based
+review of the source data, logged adjustments, a database named for its AIRAC cycle, a manifest with SHA-256 checksums of every
+input and a content hash of the output, and a change report between cycles. A scheduled GitHub Action builds it every month.
+
+```bash
+PYTHONPATH=src python -m navdb fetch --dest data/navdb/source
+PYTHONPATH=src python -m navdb build --source data/navdb/source --out data/navdb/out --countries IN
+python -m pytest tests/navdb
+```
+
+Process, rules and limits are in [`docs/navdb.md`](docs/navdb.md). It is not Jeppesen or ARINC 424 data and not certified or
+DO-200B-compliant; it practises the process and its automation.

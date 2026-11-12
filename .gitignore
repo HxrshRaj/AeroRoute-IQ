@@ -197,3 +197,7 @@ secrets.json
 *.tmp
 *.temp
 *~
+data/navdb/
+
+# navdb tests are tracked
+!tests/navdb/test_*.py

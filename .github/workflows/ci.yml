@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  navdb-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pytest
+      - name: Navigation database tests
+        run: python -m pytest tests/navdb -v
+
+  navdb-real-data-build:
+    runs-on: ubuntu-latest
+    needs: navdb-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Fetch public source data
+        run: PYTHONPATH=src python -m navdb fetch --dest data/navdb/source
+      - name: Build the Indian navigation database
+        run: PYTHONPATH=src python -m navdb build --source data/navdb/source --out data/navdb/out --countries IN
+      - name: Summary
+        if: always()
+        run: |
+          echo '### Navigation database build' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat data/navdb/out/*.manifest.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
