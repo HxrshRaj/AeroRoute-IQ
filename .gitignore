@@ -197,3 +197,4 @@ secrets.json
 *.tmp
 *.temp
 *~
+data/navdb/
